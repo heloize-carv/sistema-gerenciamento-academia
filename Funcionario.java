@@ -9,7 +9,7 @@ public class Funcionario extends Usuario {
     private static List<Funcionario> listaFuncionarios = new ArrayList<>();
 
     public Funcionario(String nome, Date dataNascimento, String cpf, String email, String userName, String senha, Cargo cargo) {
-        super(nome, dataNascimento, cpf, email, userName, senha, true);
+        super(nome, dataNascimento, cpf, email, userName, senha);
         this.cargo = cargo;
         numeroTotal++;
         listaFuncionarios.add(this);
