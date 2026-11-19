@@ -118,4 +118,70 @@ public class Assinatura {
         }
         System.out.println("Situações atualizadas.");
     }
+    public static int getNumeroAtivas() {
+        return numeroAtivas;
+    }
+
+    public Date getDataAssinatura() {
+        return dataAssinatura;
+    }
+
+    public void setDataAssinatura(Date dataAssinatura) {
+        this.dataAssinatura = dataAssinatura;
+    }
+
+    public Date getDataPagamento() {
+        return dataPagamento;
+    }
+
+    public void setDataPagamento(Date dataPagamento) {
+        this.dataPagamento = dataPagamento;
+    }
+
+    public Date getDataTermino() {
+        return dataTermino;
+    }
+
+    public void setDataTermino(Date dataTermino) {
+        this.dataTermino = dataTermino;
+    }
+
+    public Date getDataPagamentoReal() {
+        return dataPagamentoReal;
+    }
+
+    public void setDataPagamentoReal(Date dataPagamentoReal) {
+        this.dataPagamentoReal = dataPagamentoReal;
+    }
+
+    public boolean isPago() {
+        return pago;
+    }
+
+    public void setPago(boolean pago) {
+        this.pago = pago;
+    }
+
+    public Situacao getSituacao() {
+        return situacao;
+    }
+    public void setSituacao(Situacao situacao) {
+        this.situacao = situacao;
+    }
+
+    public Plano getPlano() {
+        return plano;
+    }
+
+    public void setPlano(Plano plano) {
+        this.plano = plano;
+    }
+
+    public Membro getMembro() {
+        return membro;
+    }
+
+    public void setMembro(Membro membro) {
+        this.membro = membro;
+    }
 }
