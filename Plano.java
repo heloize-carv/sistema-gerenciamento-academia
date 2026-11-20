@@ -25,11 +25,11 @@ public class Plano {
         System.out.println("Disponível: " + disponivel);
     }
 
-    public static Plano criarPlano(String beneficios, float valorMensal, String regrasVigencia) {
+    public static Plano criarPlano(String beneficios, Float valorMensal, String regrasVigencia) {
         return new Plano(beneficios, valorMensal, regrasVigencia);
     }
 
-    public void editarPlano(String beneficios, float valorMensal, String regrasVigencia, boolean disponivel) {
+    public void editarPlano(String beneficios, Float valorMensal, String regrasVigencia, boolean disponivel) {
         this.beneficios = beneficios;
         this.valorMensal = valorMensal;
         this.regrasVigencia = regrasVigencia;
