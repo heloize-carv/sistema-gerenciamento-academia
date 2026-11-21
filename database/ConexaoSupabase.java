@@ -4,7 +4,6 @@ import java.sql.SQLException;
 
 public class ConexaoSupabase {
 
-    // Substitua pelos dados da aba Connect -> Session Pooler do seu projeto Supabase
 private static final String HOST = "aws-0-us-east-1.pooler.supabase.com";
 private static final String PORT = "5432";
 private static final String DATABASE = "postgres";
