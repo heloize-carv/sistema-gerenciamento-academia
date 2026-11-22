@@ -40,8 +40,22 @@ public abstract class Usuario {
     }
 
     public static boolean autenticar(String userName, String senha) {
-        for (Usuario usuario : usuarios) {
-            if (usuario.getUserName().equals(userName) && usuario.getSenha().equals(senha)) {
+        if (userName == null || senha == null) {
+            return false;
+        }
+        for (Usuario u : usuarios) {
+            if (u.getUserName() != null && u.getUserName().equals(userName)
+                    && u.getSenha() != null && u.getSenha().equals(senha)) {
+                if (!u.isAtivo()) {
+                    return false;
+                }
+                if (u instanceof Membro) {
+                    Assinatura.atualizarSituacoes();
+                    List<Assinatura> ativas = Assinatura.listarAssinaturasAtivasPorMembro((Membro) u);
+                    if (ativas == null || ativas.isEmpty()) {
+                        return false;
+                    }
+                }
                 return true;
             }
         }
