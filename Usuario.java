@@ -39,11 +39,13 @@ public abstract class Usuario {
         }    
     }
 
-    public boolean autenticar(String userName, String senha) {
-        if (!this.ativo) {
-            return false;
+    public static boolean autenticar(String userName, String senha) {
+        for (Usuario usuario : usuarios) {
+            if (usuario.getUserName().equals(userName) && usuario.getSenha().equals(senha)) {
+                return true;
+            }
         }
-        return this.userName != null && this.userName.equals(userName) && this.senha != null && this.senha.equals(senha);
+        return false;
     }
 
     public void logout() {
