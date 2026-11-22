@@ -33,7 +33,7 @@ public abstract class Usuario {
         System.out.println("Ativo: " + (this.ativo ? "Sim" : "Não"));
     }
 
-    public void desativarUsuario(Usuario usuario) {
+    public static void desativarUsuario(Usuario usuario) {
         if (usuario != null) {
             usuario.setAtivo(false);
         }    
