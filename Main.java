@@ -304,4 +304,288 @@ public class Main {
         }
         System.out.println("Total: " + Funcionario.getNumeroTotal());
     }
+
+    private static void alternarStatusFuncionario(Funcionario logado) {
+        Funcionario f = escolher(Funcionario.listarFuncionarios(),
+                x -> x.getNome() + " - " + x.getCargo() + (x.isAtivo() ? " (ativo)" : " (desativado)"));
+        if (f == null) {
+            return;
+        }
+        if (f == logado) {
+            System.out.println("Você não pode desativar a própria conta.");
+            return;
+        }
+        if (f.isAtivo()) {
+            logado.desativarUsuario(f);
+            System.out.println("Funcionário desativado.");
+        } else {
+            f.setAtivo(true);
+            System.out.println("Funcionário reativado.");
+        }
+        persistir(() -> funcionarioDAO.atualizarPorCpf(f.getCpf(), f));
+    }
+
+    private static void editarMembroDados() {
+        Membro m = escolherMembro(Membro.listarMembros());
+        if (m == null) {
+            return;
+        }
+        final String cpfAnterior = m.getCpf();
+        String nome = lerOuManter("Nome", m.getNome());
+        Date nascimento = lerData("Data de nascimento", m.getDataNascimento());
+        String cpf = lerOuManter("CPF", m.getCpf());
+        String email = lerOuManter("Email", m.getEmail());
+        String userName = lerOuManter("Username", m.getUserName());
+        System.out.print("Nova senha [Enter mantém a atual]: ");
+        String novaSenha = in.nextLine().trim();
+        String senha = novaSenha.isEmpty() ? m.getSenha() : limpar(novaSenha);
+        String endereco = lerOuManter("Endereço", m.getEndereco());
+        String telefone = lerOuManter("Telefone", m.getTelefone());
+        if (!cpf.equals(m.getCpf()) && cpfExiste(cpf)) {
+            System.out.println("Já existe um usuário com esse CPF.");
+            return;
+        }
+        if (!userName.equals(m.getUserName()) && buscarUsuario(userName) != null) {
+            System.out.println("Username já utilizado.");
+            return;
+        }
+        Membro.editarMembro(m, nome, nascimento, cpf, email, userName, senha, m.isAtivo(), endereco, telefone);
+        persistir(() -> membroDAO.atualizarPorCpf(cpfAnterior, m));
+    }
+
+    private static void criarPlano() {
+        String beneficios = lerTexto("Benefícios: ");
+        float valor = lerFloat("Valor mensal: ");
+        String regras = lerTexto("Regras de vigência: ");
+        if (planoDuplicado(beneficios, valor, regras, null)) {
+            System.out.println("Já existe um plano com esses mesmos dados.");
+            return;
+        }
+        Plano novo = Plano.criarPlano(beneficios, valor, regras);
+        persistir(() -> planoDAO.salvar(novo));
+        System.out.println("Plano criado com sucesso.");
+    }
+
+    private static void editarPlano() {
+        Plano p = escolher(Plano.listarPlanos(), Main::descPlano);
+        if (p == null) {
+            return;
+        }
+        String beneficios = lerOuManter("Benefícios", p.getBeneficios());
+        System.out.print("Valor mensal [" + p.getValorMensal() + "]: ");
+        String textoValor = in.nextLine().trim();
+        float valor = p.getValorMensal();
+        if (!textoValor.isEmpty()) {
+            try {
+                valor = Float.parseFloat(textoValor.replace(',', '.'));
+            } catch (NumberFormatException e) {
+                System.out.println("Valor inválido, mantendo o atual.");
+            }
+        }
+        String regras = lerOuManter("Regras de vigência", p.getRegrasVigencia());
+        boolean disponivel = lerSimNao("Disponível?", p.isDisponivel());
+        if (planoDuplicado(beneficios, valor, regras, p)) {
+            System.out.println("Já existe um plano com esses mesmos dados.");
+            return;
+        }
+        p.editarPlano(beneficios, valor, regras, disponivel);
+        persistir(() -> planoDAO.atualizar(p));
+        System.out.println("Plano editado com sucesso.");
+    }
+
+    private static void excluirPlano() {
+        Plano p = escolher(Plano.listarPlanos(), Main::descPlano);
+        if (p == null) {
+            return;
+        }
+        for (Assinatura a : Assinatura.ListarAssinaturas()) {
+            if (a.getPlano() == p) {
+                System.out.println("Não é possível excluir: existem assinaturas vinculadas a este plano. Marque-o como indisponível.");
+                return;
+            }
+        }
+        Plano.excluirPlano(p);
+        persistir(() -> planoDAO.excluir(p));
+        System.out.println("Plano excluído.");
+    }
+
+    private static void listarPlanos() {
+        System.out.println("\n--- Planos (" + Plano.getNumPlanos() + ") ---");
+        int i = 1;
+        for (Plano p : Plano.listarPlanos()) {
+            System.out.println("Plano " + i++);
+            p.verPlano();
+            System.out.println("----------------------");
+        }
+    }
+
+    private static void listarPlanosDisponiveis() {
+        System.out.println("\n--- Planos disponíveis ---");
+        int i = 1;
+        for (Plano p : Plano.listarPlanosAtivo()) {
+            System.out.println("Plano " + i++);
+            p.verPlano();
+            System.out.println("----------------------");
+        }
+    }
+
+    private static void cadastrarMembro() {
+        String nome = lerTexto("Nome: ");
+        Date nascimento = lerData("Data de nascimento (dd/MM/aaaa)", null);
+        String cpf = lerTexto("CPF: ");
+        if (cpfExiste(cpf)) {
+            System.out.println("Já existe um usuário com esse CPF.");
+            return;
+        }
+        String email = lerTexto("Email: ");
+        String userName = lerTexto("Username: ");
+        if (buscarUsuario(userName) != null) {
+            System.out.println("Username já utilizado.");
+            return;
+        }
+        String senha = lerTexto("Senha: ");
+        String endereco = lerTexto("Endereço: ");
+        String telefone = lerTexto("Telefone: ");
+        Membro novo = Membro.criarMembro(nome, nascimento, cpf, email, userName, senha, endereco, telefone);
+        persistir(() -> membroDAO.salvar(novo));
+    }
+
+    private static void verMembro() {
+        Membro m = escolherMembro(Membro.listarMembros());
+        if (m != null) {
+            m.verMembro();
+        }
+    }
+
+    private static void listarMembros() {
+        System.out.println("\n--- Membros ---");
+        for (Membro m : Membro.listarMembros()) {
+            m.verMembro();
+            System.out.println("----------------------");
+        }
+        System.out.println("Total: " + Membro.listarMembros().size());
+    }
+
+    private static void listarMembrosSuspensos() {
+        System.out.println("\n--- Membros suspensos ---");
+        for (Membro m : Membro.listarMembrosSuspensos()) {
+            m.verMembro();
+            System.out.println("----------------------");
+        }
+        System.out.println("Total: " + Membro.listarMembrosSuspensos().size());
+    }
+
+    private static void suspenderMembro(Funcionario logado) {
+        List<Membro> ativos = new ArrayList<>();
+        for (Membro m : Membro.listarMembros()) {
+            if (m.isAtivo()) {
+                ativos.add(m);
+            }
+        }
+        Membro m = escolherMembro(ativos);
+        if (m != null) {
+            logado.desativarUsuario(m);
+            persistir(() -> membroDAO.atualizarPorCpf(m.getCpf(), m));
+            System.out.println("Membro suspenso.");
+        }
+    }
+
+    private static void reativarMembro() {
+        Membro m = escolherMembro(Membro.listarMembrosSuspensos());
+        if (m != null) {
+            m.setAtivo(true);
+            persistir(() -> membroDAO.atualizarPorCpf(m.getCpf(), m));
+            System.out.println("Membro reativado.");
+        }
+    }
+
+    private static void criarAssinatura() {
+        List<Membro> ativos = new ArrayList<>();
+        for (Membro m : Membro.listarMembros()) {
+            if (m.isAtivo()) {
+                ativos.add(m);
+            }
+        }
+        Membro membro = escolherMembro(ativos);
+        if (membro == null) {
+            return;
+        }
+        if (!Assinatura.listarAssinaturasAtivasPorMembro(membro).isEmpty()) {
+            System.out.println("O membro já possui uma assinatura ativa. Cancele-a antes de trocar de plano.");
+            return;
+        }
+        System.out.println("Escolha o plano:");
+        Plano plano = escolher(Plano.listarPlanosAtivo(), Main::descPlano);
+        if (plano == null) {
+            return;
+        }
+        Date hoje = new Date();
+        Date pagamento = lerData("Data limite de pagamento", new Date(hoje.getTime() + 30 * DIA));
+        Date termino = lerData("Data de término", new Date(hoje.getTime() + 365 * DIA));
+        Assinatura nova = Assinatura.criarAssinatura(plano, membro, pagamento, termino);
+        persistir(() -> assinaturaDAO.salvar(nova));
+    }
+
+    private static void editarAssinatura() {
+        Assinatura a = escolher(Assinatura.ListarAssinaturas(), Main::descAssinatura);
+        if (a == null) {
+            return;
+        }
+        Date pagamento = lerData("Data limite de pagamento", a.getDataPagamento());
+        Date termino = lerData("Data de término", a.getDataTermino());
+        Assinatura.editarAssinatura(a, a.getDataAssinatura(), pagamento, termino,
+                a.getDataPagamentoReal(), a.isPago(), a.getSituacao());
+        persistir(() -> assinaturaDAO.atualizar(a));
+    }
+
+    private static void registrarPagamento() {
+        List<Assinatura> pendentes = new ArrayList<>();
+        for (Assinatura a : Assinatura.ListarAssinaturas()) {
+            if (!a.isPago() && a.getSituacao() != Situacao.CANCELADA) {
+                pendentes.add(a);
+            }
+        }
+        Assinatura a = escolher(pendentes, Main::descAssinatura);
+        if (a != null) {
+            a.registrarPagamento();
+            persistir(() -> assinaturaDAO.registrarPagamento(a));
+        }
+    }
+
+    private static void cancelarAssinaturaRecepcao() {
+        List<Assinatura> naoCanceladas = new ArrayList<>();
+        for (Assinatura a : Assinatura.ListarAssinaturas()) {
+            if (a.getSituacao() != Situacao.CANCELADA) {
+                naoCanceladas.add(a);
+            }
+        }
+        Assinatura a = escolher(naoCanceladas, Main::descAssinatura);
+        if (a != null && lerSimNao("Confirmar cancelamento?", false)) {
+            cancelar(a);
+        }
+    }
+
+    private static void excluirAssinatura() {
+        Assinatura a = escolher(Assinatura.ListarAssinaturas(), Main::descAssinatura);
+        if (a != null && lerSimNao("Confirmar exclusão?", false)) {
+            Assinatura.excluirAssinatura(a);
+            persistir(() -> assinaturaDAO.excluir(a));
+        }
+    }
+
+    private static void listarAssinaturas(List<Assinatura> lista) {
+        System.out.println("\n--- Assinaturas ---");
+        for (Assinatura a : lista) {
+            a.verAssinatura();
+            System.out.println("----------------------");
+        }
+        System.out.println("Total: " + lista.size());
+    }
+
+    private static void cancelar(Assinatura a) {
+        Assinatura.editarAssinatura(a, a.getDataAssinatura(), a.getDataPagamento(), new Date(),
+                a.getDataPagamentoReal(), a.isPago(), Situacao.CANCELADA);
+        persistir(() -> assinaturaDAO.cancelarAssinatura(a));
+        System.out.println("Assinatura cancelada.");
+    }
 }
