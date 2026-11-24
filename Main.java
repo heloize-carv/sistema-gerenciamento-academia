@@ -79,7 +79,7 @@ public class Main {
             System.out.println("Acesso negado: conta desativada.");
             return;
         }
-        if (!usuario.autenticar(userName, senha)) {
+        if (!Usuario.autenticar(userName, senha)) {
             System.out.println("Credenciais inválidas.");
             return;
         }
@@ -316,7 +316,7 @@ public class Main {
             return;
         }
         if (f.isAtivo()) {
-            logado.desativarUsuario(f); 
+            Usuario.desativarUsuario(f);
             System.out.println("Funcionário desativado.");
         } else {
             f.setAtivo(true);
@@ -484,7 +484,7 @@ public class Main {
         }
         Membro m = escolherMembro(ativos);
         if (m != null) {
-            logado.desativarUsuario(m);
+            Usuario.desativarUsuario(m);
             persistir(() -> membroDAO.atualizarPorCpf(m.getCpf(), m));
             System.out.println("Membro suspenso.");
         }
@@ -753,7 +753,7 @@ public class Main {
         for (Assinatura a : Assinatura.listarAssinaturasAtivasPorMembro(membro)) {
             cancelar(a);
         }
-        membro.desativarUsuario(membro);
+        Usuario.desativarUsuario(membro);
         persistir(() -> membroDAO.atualizarPorCpf(membro.getCpf(), membro));
         System.out.println("Cadastro desativado.");
         return true;
