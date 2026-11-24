@@ -767,4 +767,204 @@ public class Main {
         }
         return false;
     }
+    private static Usuario buscarUsuario(String userName) {
+        for (Funcionario f : Funcionario.listarFuncionarios()) {
+            if (f.getUserName().equals(userName)) {
+                return f;
+            }
+        }
+        for (Membro m : Membro.listarMembros()) {
+            if (m.getUserName().equals(userName)) {
+                return m;
+            }
+        }
+        return null;
+    }
+
+    private static boolean cpfExiste(String cpf) {
+        for (Funcionario f : Funcionario.listarFuncionarios()) {
+            if (f.getCpf().equals(cpf)) {
+                return true;
+            }
+        }
+        for (Membro m : Membro.listarMembros()) {
+            if (m.getCpf().equals(cpf)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean planoDuplicado(String beneficios, float valor, String regras, Plano ignorar) {
+        for (Plano p : Plano.listarPlanos()) {
+            if (p != ignorar && p.getBeneficios().equals(beneficios)
+                    && Float.compare(p.getValorMensal(), valor) == 0 && p.getRegrasVigencia().equals(regras)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static String descPlano(Plano p) {
+        return p.getBeneficios() + " - R$ " + p.getValorMensal() + " - " + p.getRegrasVigencia()
+                + (p.isDisponivel() ? "" : " (indisponível)");
+    }
+
+    private static String descAssinatura(Assinatura a) {
+        return a.getMembro().getNome() + " | " + a.getPlano().getBeneficios() + " | " + a.getSituacao()
+                + " | pago: " + (a.isPago() ? "sim" : "não") + " | pagar até " + FORMATO.format(a.getDataPagamento());
+    }
+
+    private static String descAula(Aula a) {
+        return a.getHorario() + " - " + a.getDescricao() + " (" + a.getInstrutor().getNome() + ")";
+    }
+
+    private static Membro escolherMembro(List<Membro> lista) {
+        return escolher(lista, m -> m.getNome() + " - CPF " + m.getCpf() + (m.isAtivo() ? "" : " (suspenso)"));
+    }
+
+    private static <T> T escolher(List<T> itens, Function<T, String> descricao) {
+        if (itens.isEmpty()) {
+            System.out.println("Nenhum registro disponível.");
+            return null;
+        }
+        for (int i = 0; i < itens.size(); i++) {
+            System.out.println((i + 1) + ". " + descricao.apply(itens.get(i)));
+        }
+        int op = lerInt("Escolha (0 para cancelar): ");
+        if (op < 1 || op > itens.size()) {
+            return null;
+        }
+        return itens.get(op - 1);
+    }
+
+    private static String limpar(String s) {
+        return s.replace("\t", " ").replace("\n", " ").replace("\r", " ");
+    }
+
+    private static String lerTexto(String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            String s = in.nextLine().trim();
+            if (!s.isEmpty()) {
+                return limpar(s);
+            }
+            System.out.println("Campo obrigatório.");
+        }
+    }
+
+    private static String lerOuManter(String rotulo, String atual) {
+        System.out.print(rotulo + " [" + atual + "]: ");
+        String s = in.nextLine().trim();
+        return s.isEmpty() ? atual : limpar(s);
+    }
+
+    private static int lerInt(String prompt) {
+        System.out.print(prompt);
+        try {
+            return Integer.parseInt(in.nextLine().trim());
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
+    private static float lerFloat(String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            try {
+                return Float.parseFloat(in.nextLine().trim().replace(',', '.'));
+            } catch (NumberFormatException e) {
+                System.out.println("Valor inválido.");
+            }
+        }
+    }
+
+    private static boolean lerSimNao(String prompt, boolean padrao) {
+        System.out.print(prompt + (padrao ? " [S/n]: " : " [s/N]: "));
+        String s = in.nextLine().trim().toLowerCase();
+        if (s.isEmpty()) {
+            return padrao;
+        }
+        return s.startsWith("s");
+    }
+
+    private static Date lerData(String prompt, Date padrao) {
+        while (true) {
+            System.out.print(prompt + (padrao != null ? " [" + FORMATO.format(padrao) + "]" : "") + ": ");
+            String s = in.nextLine().trim();
+            if (s.isEmpty() && padrao != null) {
+                return padrao;
+            }
+            try {
+                return FORMATO.parse(s);
+            } catch (ParseException e) {
+                System.out.println("Use o formato dd/MM/aaaa.");
+            }
+        }
+    }
+
+    private static Cargo lerCargo(Cargo atual) {
+        while (true) {
+            System.out.println("1. GERENTE  2. RECEPCIONISTA  3. INSTRUTOR");
+            int op = lerInt("Cargo" + (atual != null ? " [" + atual + "]" : "") + ": ");
+            if (op == 1) {
+                return Cargo.GERENTE;
+            } else if (op == 2) {
+                return Cargo.RECEPCIONISTA;
+            } else if (op == 3) {
+                return Cargo.INSTRUTOR;
+            } else if (atual != null) {
+                return atual;
+            }
+            System.out.println("Opção inválida.");
+        }
+    }
+
+    private static Date data(int dia, int mes, int ano) {
+        return new java.util.GregorianCalendar(ano, mes - 1, dia).getTime();
+    }
+
+    private static void silencioso(Runnable acao) {
+        PrintStream original = System.out;
+        System.setOut(new PrintStream(OutputStream.nullOutputStream()));
+        try {
+            acao.run();
+        } finally {
+            System.setOut(original);
+        }
+    }
+
+    private static void atualizarSituacoes() {
+        Map<Assinatura, Situacao> antes = new IdentityHashMap<>();
+        for (Assinatura a : Assinatura.ListarAssinaturas()) {
+            antes.put(a, a.getSituacao());
+        }
+        silencioso(Assinatura::atualizarSituacoes);
+        for (Assinatura a : Assinatura.ListarAssinaturas()) {
+            if (antes.get(a) != a.getSituacao()) {
+                persistir(() -> assinaturaDAO.atualizar(a));
+            }
+        }
+    }
+
+    private static boolean carregar() {
+        SQLException[] erro = new SQLException[1];
+        silencioso(() -> {
+            try {
+                assinaturaDAO.atualizarSituacoesVencidas();
+                funcionarioDAO.carregarTodos();
+                membroDAO.carregarTodos();
+                planoDAO.carregarTodos();
+                assinaturaDAO.carregarTodas();
+                aulaDAO.carregarTodas();
+            } catch (SQLException e) {
+                erro[0] = e;
+            }
+        });
+        if (erro[0] != null) {
+            System.out.println("Não foi possível carregar os dados do Supabase: " + erro[0].getMessage());
+            return false;
+        }
+        return true;
+    }
 }

@@ -10,7 +10,7 @@ public class Membro extends Usuario {
     public Membro(String nome, Date dataNascimento, String cpf, String email, String userName, String senha, String endereco, String telefone) {
         super(nome, dataNascimento, cpf, email, userName, senha);
         this.endereco=endereco;
-        this. telefone=telefone;
+        this.telefone=telefone;
     }
     public void verMembro (){
         System.out.println (" - Dados do Membro - ");
@@ -72,6 +72,9 @@ public class Membro extends Usuario {
     public void setTelefone(String telefone) {
         this.telefone = telefone;
     }
-    
     public static int getNumeroAtivos(){return numeroAtivos;}
+    @Override
+    public String toString() {
+        return "Membro [" + super.toString() + ", endereco=" + endereco + ", telefone=" + telefone + "]";
+    }
 }
