@@ -42,7 +42,7 @@ public class Funcionario extends Usuario {
     }
 
     public static List<Funcionario> listarFuncionarios() {
-        return listaFuncionarios;
+        return new ArrayList<>(listaFuncionarios);
     }
 
     public static int getNumeroTotal() {
