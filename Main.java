@@ -316,7 +316,7 @@ public class Main {
             return;
         }
         if (f.isAtivo()) {
-            logado.desativarUsuario(f);
+            logado.desativarUsuario(f); 
             System.out.println("Funcionário desativado.");
         } else {
             f.setAtivo(true);
