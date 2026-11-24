@@ -588,4 +588,183 @@ public class Main {
         persistir(() -> assinaturaDAO.cancelarAssinatura(a));
         System.out.println("Assinatura cancelada.");
     }
+
+    private static void inscreverEmAula() {
+        Aula aula = escolher(Aula.listarAulas(), Main::descAula);
+        if (aula == null) {
+            return;
+        }
+        List<Membro> ativos = new ArrayList<>();
+        for (Membro m : Membro.listarMembros()) {
+            if (m.isAtivo() && !aula.getAlunos().contains(m)) {
+                ativos.add(m);
+            }
+        }
+        Membro membro = escolherMembro(ativos);
+        if (membro == null) {
+            return;
+        }
+        if (Assinatura.listarAssinaturasAtivasPorMembro(membro).isEmpty()) {
+            System.out.println("O membro precisa de uma assinatura ativa para se inscrever em aulas.");
+            return;
+        }
+        List<Membro> alunos = aula.getAlunos();
+        alunos.add(membro);
+        Aula.editarAula(aula.getHorario(), aula.getDescricao(), aula.getInstrutor(), alunos);
+        persistir(() -> aulaDAO.atualizar(aula));
+        System.out.println("Inscrição realizada.");
+    }
+
+    private static void removerInscricao() {
+        Aula aula = escolher(Aula.listarAulas(), Main::descAula);
+        if (aula == null) {
+            return;
+        }
+        Membro membro = escolherMembro(aula.getAlunos());
+        if (membro == null) {
+            return;
+        }
+        List<Membro> alunos = aula.getAlunos();
+        alunos.remove(membro);
+        Aula.editarAula(aula.getHorario(), aula.getDescricao(), aula.getInstrutor(), alunos);
+        persistir(() -> aulaDAO.atualizar(aula));
+        System.out.println("Inscrição removida.");
+    }
+
+    private static void listarAulas(List<Aula> lista) {
+        System.out.println("\n--- Aulas ---");
+        for (Aula a : lista) {
+            a.verAula();
+            System.out.println("----------------------");
+        }
+        System.out.println("Total: " + lista.size());
+    }
+
+    private static List<Aula> aulasDoInstrutor(Funcionario instrutor) {
+        List<Aula> minhas = new ArrayList<>();
+        for (Aula a : Aula.listarAulas()) {
+            if (a.getInstrutor() == instrutor) {
+                minhas.add(a);
+            }
+        }
+        return minhas;
+    }
+
+    private static void criarAula(Funcionario instrutor) {
+        String horario = lerTexto("Horário (ex: Segunda 18h): ");
+        for (Aula a : Aula.listarAulas()) {
+            if (a.getHorario().equalsIgnoreCase(horario)) {
+                System.out.println("Já existe uma aula nesse horário.");
+                return;
+            }
+        }
+        String descricao = lerTexto("Descrição: ");
+        Aula nova = Aula.criarAula(horario, descricao, instrutor, new ArrayList<>());
+        persistir(() -> aulaDAO.salvar(nova));
+        System.out.println("Aula criada com sucesso.");
+    }
+
+    private static void editarAula(Funcionario instrutor) {
+        Aula aula = escolher(aulasDoInstrutor(instrutor), Main::descAula);
+        if (aula == null) {
+            return;
+        }
+        String descricao = lerOuManter("Descrição", aula.getDescricao());
+        Aula.editarAula(aula.getHorario(), descricao, instrutor, aula.getAlunos());
+        persistir(() -> aulaDAO.atualizar(aula));
+        System.out.println("Aula editada com sucesso.");
+    }
+
+    private static void excluirAula(Funcionario instrutor) {
+        Aula aula = escolher(aulasDoInstrutor(instrutor), Main::descAula);
+        if (aula != null && lerSimNao("Confirmar exclusão?", false)) {
+            Aula.excluirAula(aula);
+            persistir(() -> aulaDAO.excluir(aula));
+            System.out.println("Aula excluída.");
+        }
+    }
+
+    private static void verInscritos(Funcionario instrutor) {
+        Aula aula = escolher(aulasDoInstrutor(instrutor), Main::descAula);
+        if (aula == null) {
+            return;
+        }
+        aula.verAula();
+        for (Membro m : aula.getAlunos()) {
+            System.out.println(" - " + m.getNome());
+        }
+    }
+
+    private static void listarTodosInscritos() {
+        System.out.println("\n--- Membros inscritos em aulas ---");
+        for (Membro m : Aula.listarInscritos()) {
+            System.out.println(" - " + m.getNome());
+        }
+    }
+
+    private static void realizarCheckIn(Membro membro) {
+        atualizarSituacoes();
+        if (Assinatura.listarAssinaturasAtivasPorMembro(membro).isEmpty()) {
+            System.out.println("Acesso negado: assinatura inexistente ou vencida.");
+            return;
+        }
+        membro.realizarCheckin();
+    }
+
+    private static void minhasAulas(Membro membro) {
+        System.out.println("\n--- Minhas aulas ---");
+        boolean encontrou = false;
+        for (Aula a : Aula.listarAulas()) {
+            if (a.getAlunos().contains(membro)) {
+                System.out.println(a.getHorario() + " - " + a.getDescricao() + " (Instrutor: " + a.getInstrutor().getNome() + ")");
+                encontrou = true;
+            }
+        }
+        if (!encontrou) {
+            System.out.println("Você não está inscrito em nenhuma aula.");
+        }
+    }
+
+    private static void minhaAssinatura(Membro membro) {
+        atualizarSituacoes();
+        List<Assinatura> ativas = Assinatura.listarAssinaturasAtivasPorMembro(membro);
+        if (ativas.isEmpty()) {
+            System.out.println("Você não possui assinatura ativa.");
+            return;
+        }
+        for (Assinatura a : ativas) {
+            a.verAssinatura();
+            System.out.println("- Plano -");
+            a.getPlano().verPlano();
+        }
+    }
+
+    private static void cancelarMinhaAssinatura(Membro membro) {
+        Assinatura a = escolher(Assinatura.listarAssinaturasAtivasPorMembro(membro), Main::descAssinatura);
+        if (a != null && lerSimNao("Confirmar cancelamento?", false)) {
+            cancelar(a);
+        }
+    }
+
+    private static boolean solicitarExclusao(Membro membro) {
+        if (!lerSimNao("Isso cancelará suas assinaturas e desativará sua conta. Confirmar?", false)) {
+            return false;
+        }
+        for (Assinatura a : Assinatura.listarAssinaturasAtivasPorMembro(membro)) {
+            cancelar(a);
+        }
+        membro.desativarUsuario(membro);
+        persistir(() -> membroDAO.atualizarPorCpf(membro.getCpf(), membro));
+        System.out.println("Cadastro desativado.");
+        return true;
+    }
+
+    private static boolean temAssinaturaVencida(Membro membro) {
+        for (Assinatura a : Assinatura.ListarAssinaturas()) {
+            if (a.getMembro() == membro && a.getSituacao() == Situacao.VENCIDA) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
