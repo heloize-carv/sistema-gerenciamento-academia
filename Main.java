@@ -589,7 +589,7 @@ public class Main {
         System.out.println("Assinatura cancelada.");
     }
 
-    private static void inscreverEmAula() {
+    private static void inscreverEmAula(){
         Aula aula = escolher(Aula.listarAulas(), Main::descAula);
         if (aula == null) {
             return;
@@ -618,7 +618,7 @@ public class Main {
         persistir(() -> aulaDAO.atualizar(aula));
         System.out.println("Inscrição realizada.");
     }
-
+    
     private static void removerInscricao() {
         Aula aula = escolher(Aula.listarAulas(), Main::descAula);
         if (aula == null) {
