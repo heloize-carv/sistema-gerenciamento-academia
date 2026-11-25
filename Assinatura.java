@@ -39,7 +39,7 @@ public class Assinatura {
     }
     public void verificarVencimento(){
         Date hoje = new Date();
-        if (this.pago && hoje.after(this.dataPagamento) && this.situacao != Situacao.CANCELADA){
+        if (!this.pago && hoje.after(this.dataPagamento) && this.situacao != Situacao.CANCELADA){
             this.situacao= Situacao.VENCIDA;
         }
     }

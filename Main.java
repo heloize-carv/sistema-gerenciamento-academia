@@ -594,18 +594,22 @@ public class Main {
         if (aula == null) {
             return;
         }
-        List<Membro> ativos = new ArrayList<>();
+        atualizarSituacoes();
+        List<Membro> elegiveis = new ArrayList<>();
         for (Membro m : Membro.listarMembros()) {
-            if (m.isAtivo() && !aula.getAlunos().contains(m)) {
-                ativos.add(m);
+            boolean contaAtiva = m.isAtivo();
+            boolean assinaturaAtiva = !Assinatura.listarAssinaturasAtivasPorMembro(m).isEmpty();
+            boolean jaInscrito = aula.getAlunos().contains(m);
+            if (contaAtiva && assinaturaAtiva && !jaInscrito) {
+                elegiveis.add(m);
             }
         }
-        Membro membro = escolherMembro(ativos);
-        if (membro == null) {
+        if (elegiveis.isEmpty()) {
+            System.out.println("Nenhum membro ativo disponível para inscrição nesta aula.");
             return;
         }
-        if (Assinatura.listarAssinaturasAtivasPorMembro(membro).isEmpty()) {
-            System.out.println("O membro precisa de uma assinatura ativa para se inscrever em aulas.");
+        Membro membro = escolherMembro(elegiveis);
+        if (membro == null) {
             return;
         }
         List<Membro> alunos = aula.getAlunos();
