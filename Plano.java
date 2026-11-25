@@ -22,7 +22,7 @@ public class Plano {
         System.out.println("Benefícios: " + beneficios);
         System.out.println("Valor Mensal: " + valorMensal);
         System.out.println("Regras de Vigência: " + regrasVigencia);
-        System.out.println("Disponível: " + disponivel);
+        System.out.println("Disponível: " + (this.disponivel ? "Sim" : "Não"));
     }
 
     public static Plano criarPlano(String beneficios, Float valorMensal, String regrasVigencia) {
