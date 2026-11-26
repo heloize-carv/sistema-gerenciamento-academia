@@ -180,7 +180,7 @@ public class Main {
                 case 9: registrarPagamento(); break;
                 case 10: cancelarAssinaturaRecepcao(); break;
                 case 11: excluirAssinatura(); break;
-                case 12: listarAssinaturas(Assinatura.ListarAssinaturas()); break;
+                case 12: listarAssinaturas(Assinatura.listarAssinaturas()); break;
                 case 13: listarAssinaturas(Assinatura.listarAssinaturasAtivas()); break;
                 case 14: listarAssinaturas(Assinatura.listarPagamentoAtrasados()); break;
                 case 15: atualizarSituacoes(); System.out.println("Situações atualizadas."); break;
@@ -398,7 +398,7 @@ public class Main {
         if (p == null) {
             return;
         }
-        for (Assinatura a : Assinatura.ListarAssinaturas()) {
+        for (Assinatura a : Assinatura.listarAssinaturas()) {
             if (a.getPlano() == p) {
                 System.out.println("Não é possível excluir: existem assinaturas vinculadas a este plano. Marque-o como indisponível.");
                 return;
@@ -527,7 +527,7 @@ public class Main {
     }
 
     private static void editarAssinatura() {
-        Assinatura a = escolher(Assinatura.ListarAssinaturas(), Main::descAssinatura);
+        Assinatura a = escolher(Assinatura.listarAssinaturas(), Main::descAssinatura);
         if (a == null) {
             return;
         }
@@ -540,7 +540,7 @@ public class Main {
 
     private static void registrarPagamento() {
         List<Assinatura> pendentes = new ArrayList<>();
-        for (Assinatura a : Assinatura.ListarAssinaturas()) {
+        for (Assinatura a : Assinatura.listarAssinaturas()) {
             if (!a.isPago() && a.getSituacao() != Situacao.CANCELADA) {
                 pendentes.add(a);
             }
@@ -554,7 +554,7 @@ public class Main {
 
     private static void cancelarAssinaturaRecepcao() {
         List<Assinatura> naoCanceladas = new ArrayList<>();
-        for (Assinatura a : Assinatura.ListarAssinaturas()) {
+        for (Assinatura a : Assinatura.listarAssinaturas()) {
             if (a.getSituacao() != Situacao.CANCELADA) {
                 naoCanceladas.add(a);
             }
@@ -566,7 +566,7 @@ public class Main {
     }
 
     private static void excluirAssinatura() {
-        Assinatura a = escolher(Assinatura.ListarAssinaturas(), Main::descAssinatura);
+        Assinatura a = escolher(Assinatura.listarAssinaturas(), Main::descAssinatura);
         if (a != null && lerSimNao("Confirmar exclusão?", false)) {
             Assinatura.excluirAssinatura(a);
             persistir(() -> assinaturaDAO.excluir(a));
@@ -618,7 +618,7 @@ public class Main {
         persistir(() -> aulaDAO.atualizar(aula));
         System.out.println("Inscrição realizada.");
     }
-    
+
     private static void removerInscricao() {
         Aula aula = escolher(Aula.listarAulas(), Main::descAula);
         if (aula == null) {
@@ -764,7 +764,7 @@ public class Main {
     }
 
     private static boolean temAssinaturaVencida(Membro membro) {
-        for (Assinatura a : Assinatura.ListarAssinaturas()) {
+        for (Assinatura a : Assinatura.listarAssinaturas()) {
             if (a.getMembro() == membro && a.getSituacao() == Situacao.VENCIDA) {
                 return true;
             }
@@ -940,11 +940,11 @@ public class Main {
 
     private static void atualizarSituacoes() {
         Map<Assinatura, Situacao> antes = new IdentityHashMap<>();
-        for (Assinatura a : Assinatura.ListarAssinaturas()) {
+        for (Assinatura a : Assinatura.listarAssinaturas()) {
             antes.put(a, a.getSituacao());
         }
         silencioso(Assinatura::atualizarSituacoes);
-        for (Assinatura a : Assinatura.ListarAssinaturas()) {
+        for (Assinatura a : Assinatura.listarAssinaturas()) {
             if (antes.get(a) != a.getSituacao()) {
                 persistir(() -> assinaturaDAO.atualizar(a));
             }

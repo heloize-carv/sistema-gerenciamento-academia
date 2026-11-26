@@ -70,8 +70,8 @@ public class Assinatura {
             System.out.println ("Assinatura Excluída.");
         }
     }
-    public static List <Assinatura> ListarAssinaturas (){
-        return new ArrayList<>(listaAssinaturas);
+    public static List <Assinatura> listarAssinaturas (){
+        return listaAssinaturas;
     }
     public static List <Assinatura> listarPagamentoAtrasados(){
         List<Assinatura> atrasadas = new ArrayList<>();
