@@ -71,7 +71,7 @@ public class Assinatura {
         }
     }
     public static List <Assinatura> ListarAssinaturas (){
-        return listaAssinaturas;
+        return new ArrayList<>(listaAssinaturas);
     }
     public static List <Assinatura> listarPagamentoAtrasados(){
         List<Assinatura> atrasadas = new ArrayList<>();
